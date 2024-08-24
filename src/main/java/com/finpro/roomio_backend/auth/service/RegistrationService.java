@@ -50,4 +50,5 @@ public class RegistrationService {
         user.setVerificationToken(null);
         userRepository.save(user);
     }
+
 }

@@ -10,6 +10,7 @@ import com.finpro.roomio_backend.users.entity.Users;
 import com.finpro.roomio_backend.users.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,19 +40,32 @@ public class AuthController {
             Map<String, Object> data = new HashMap<>();
             data.put("exists", true);
             data.put("method", user.getMethod());
+            data.put("type", user.getIsTenant() ? "tenant" : "user");
             return Response.successfulResponse("Email found", data);
         } else {
             Map<String, Object> data = new HashMap<>();
             data.put("exists", false);
+            data.put("type", null);
             return Response.successfulResponse("Email not found", data);
         }
     }
 
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@Validated @RequestBody RegistrationRequestDto request) {
-        registrationService.registerUser(request.getEmail());
-        return ResponseEntity.ok("Registration successful, please check your email for verification.");
+    @PostMapping("/register/user")
+    public ResponseEntity<Response<Object>> register(@Validated @RequestBody RegistrationRequestDto request) {
+        try {
+            registrationService.registerUser(request.getEmail());
+            return Response.successfulResponse("Registration successful, please check your email for verification.");
+        } catch (IllegalArgumentException ex) {
+            // Log the exception message
+            System.out.println("IllegalArgumentException: " + ex.getMessage());
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        } catch (Exception ex) {
+            // Log the exception message and stack trace
+            ex.printStackTrace();
+            return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+        }
     }
+
 
     @PostMapping("/verify")
     public ResponseEntity<String> verify(@RequestParam String token, @RequestParam String password) {
