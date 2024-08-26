@@ -39,83 +39,101 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public String generateToken(Authentication authentication) {
+    if (authentication == null) {
+      throw new IllegalArgumentException("Authentication name (subject) cannot be null");
+    }
 
-    // for iat later
+    // For iat later
     Instant now = Instant.now();
 
-    // define scope
+    // Define scope
     String scope = authentication.getAuthorities()
-        .stream()
-        .map(GrantedAuthority::getAuthority)
-        .collect(Collectors.joining(" "));
+            .stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.joining(" "));
 
-    // jwt claims
+    // Check if authentication name is null
+    String subject = authentication.getName();
+    if (subject == null) {
+      throw new IllegalArgumentException("Authentication name (subject) cannot be null");
+    }
+
+    // JWT claims
     JwtClaimsSet claimsSet = JwtClaimsSet.builder()
-        .issuer("self")
-        .issuedAt(now)
-        .expiresAt(now.plus(12, ChronoUnit.HOURS))
-        .subject(authentication.getName())
-        .claim("scope", scope)
-        .build();
+            .issuer("self")
+            .issuedAt(now)
+            .expiresAt(now.plus(12, ChronoUnit.HOURS))
+            .subject(subject)
+            .claim("scope", scope)
+            .build();
 
-    // encode jwt
+    log.info(String.valueOf(claimsSet));
+
+    // Encode JWT
     var jwt = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
 
-    // save in redis
+    // Save in Redis
     authRedisRepository.saveJwtKey(authentication.getName(), jwt);
 
-    // return
+    // Return
     return jwt;
   }
 
   @Override
   public ResponseEntity<?> login(LoginRequestDto loginRequestDto) {
     try {
-      // * 1: authenticate user
-      Authentication authentication = authenticationManager
-          .authenticate(
-              new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword()));
+      // Authenticate user
+      Authentication authentication = authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(loginRequestDto.getEmail(), loginRequestDto.getPassword())
+      );
       log.info("Authenticated user: {}", authentication);
 
-      // * 2: store it in the security context
+      // Store it in the security context
       SecurityContextHolder.getContext().setAuthentication(authentication);
-      var ctx = SecurityContextHolder.getContext();
-      ctx.setAuthentication(authentication);
 
-      // * 3: get user's information
-      UserAuth userDetails = (UserAuth) ctx.getAuthentication().getPrincipal();
+      // Get user's information
+      UserAuth userDetails = (UserAuth) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       log.info("Principal: {}", userDetails);
 
-      // ! 4: generate token
+      // Generate token
       String token = generateToken(authentication);
+      log.info("Token generated successfully");
 
-      // * 5: generate response
+      // Generate response
       LoginResponseDto response = new LoginResponseDto();
       response.setMessage("Welcome, " + userDetails.getUsername() + "!");
       response.setToken(token);
 
-      // * 6: create (response)cookie
+      // Create response cookie
       ResponseCookie cookie = ResponseCookie.from("JSESSIONID", token)
-          .path("/")
-          .httpOnly(true)
-          .maxAge(43200)
-          .build();
+              .path("/")
+              .httpOnly(true)
+              .maxAge(43200) // 12 hours
+              .build();
       HttpHeaders headers = new HttpHeaders();
-      headers.add("Set-Cookie", cookie.toString());
+      headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
 
-      // * 7: return the token
+      // Return the token
       return ResponseEntity.ok().headers(headers).body(response);
     } catch (BadCredentialsException ex) {
       // Handle bad credentials
+      log.error("Authentication failed: Invalid username or password.", ex);
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed. Invalid username or password.");
     } catch (LockedException ex) {
       // Handle locked account
+      log.error("Account is locked.", ex);
       return ResponseEntity.status(HttpStatus.LOCKED).body("Account is locked.");
+    } catch (IllegalArgumentException ex) {
+      // Handle illegal argument exception (from generateToken)
+      log.error("An error occurred while generating token.", ex);
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while generating token.");
     } catch (Exception ex) {
       // Handle other exceptions
+      log.error("An internal error occurred.", ex);
       return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An internal error occurred.");
     }
   }
+
 
   @Override
   public void logout() {

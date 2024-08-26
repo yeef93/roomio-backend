@@ -51,9 +51,6 @@ public class Users {
     @Column(name = "is_verified")
     private Boolean isVerified = false;
 
-    @Column(name = "verification_token")
-    private String verificationToken;
-
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;

@@ -18,7 +18,7 @@ public class Response<T> {
   private String statusMessage;
   private T data;
 
-  // constructor
+  // Constructor
   public Response(int statusCode, String statusMessage) {
     this.statusCode = statusCode;
     this.statusMessage = statusMessage;
@@ -36,7 +36,7 @@ public class Response<T> {
   }
 
   // Overloaded failedResponse methods
-  public static ResponseEntity<Response<Object>> failedResponse(int statusCode, String statusMessage) {
+  public static <T> ResponseEntity<Response<T>> failedResponse(int statusCode, String statusMessage) {
     return failedResponse(statusCode, statusMessage, null);
   }
 
@@ -72,7 +72,7 @@ public class Response<T> {
       response.put("events", page.getContent());
       return Response.successfulResponse(statusCode, message, response);
     } else {
-      return Response.failedResponse("No data found!");
+      return Response.failedResponse(HttpStatus.NOT_FOUND.value(), "No data found", null);
     }
   }
 }
