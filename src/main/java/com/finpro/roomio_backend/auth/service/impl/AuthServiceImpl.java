@@ -39,45 +39,40 @@ public class AuthServiceImpl implements AuthService {
 
   @Override
   public String generateToken(Authentication authentication) {
-    if (authentication == null) {
-      throw new IllegalArgumentException("Authentication name (subject) cannot be null");
-    }
-
-    // For iat later
+    // for iat later
     Instant now = Instant.now();
 
-    // Define scope
+    // define scope
     String scope = authentication.getAuthorities()
             .stream()
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.joining(" "));
 
-    // Check if authentication name is null
-    String subject = authentication.getName();
-    if (subject == null) {
-      throw new IllegalArgumentException("Authentication name (subject) cannot be null");
-    }
+    // Log the claims values
+    log.debug("Authentication Name: {}", authentication.getName());
+    log.debug("Scope: {}", scope);
+    log.debug("Issued At: {}", now);
+    log.debug("Expires At: {}", now.plus(12, ChronoUnit.HOURS));
 
-    // JWT claims
+    // jwt claims
     JwtClaimsSet claimsSet = JwtClaimsSet.builder()
             .issuer("self")
             .issuedAt(now)
             .expiresAt(now.plus(12, ChronoUnit.HOURS))
-            .subject(subject)
+            .subject(authentication.getName())  // This is where it fails
             .claim("scope", scope)
             .build();
 
-    log.info(String.valueOf(claimsSet));
-
-    // Encode JWT
+    // encode jwt
     var jwt = jwtEncoder.encode(JwtEncoderParameters.from(claimsSet)).getTokenValue();
 
-    // Save in Redis
+    // save in redis
     authRedisRepository.saveJwtKey(authentication.getName(), jwt);
 
-    // Return
+    // return
     return jwt;
   }
+
 
   @Override
   public ResponseEntity<?> login(LoginRequestDto loginRequestDto) {
