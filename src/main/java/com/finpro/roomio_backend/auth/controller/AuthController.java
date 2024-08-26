@@ -144,6 +144,22 @@ public class AuthController {
         }
     }
 
+    @PostMapping("/register/tenant")
+    public ResponseEntity<Response<Object>> registerTenant(@Validated @RequestBody RegistrationRequestDto request) {
+        try {
+            registrationService.registerTenant(request.getEmail());
+            return Response.successfulResponse("Registration successful, please check your email for verification.");
+        } catch (IllegalArgumentException ex) {
+            // Log the exception message
+            System.out.println("IllegalArgumentException: " + ex.getMessage());
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        } catch (Exception ex) {
+            // Log the exception message and stack trace
+            ex.printStackTrace();
+            return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+        }
+    }
+
 
     // > DEV: check who is currently logged in this session
     @GetMapping("")

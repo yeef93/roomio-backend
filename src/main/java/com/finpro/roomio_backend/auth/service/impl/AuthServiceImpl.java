@@ -5,6 +5,7 @@ import com.finpro.roomio_backend.auth.entity.dto.LoginRequestDto;
 import com.finpro.roomio_backend.auth.entity.dto.LoginResponseDto;
 import com.finpro.roomio_backend.auth.repository.AuthRedisRepository;
 import com.finpro.roomio_backend.auth.service.AuthService;
+import com.finpro.roomio_backend.responses.Response;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
@@ -48,18 +49,18 @@ public class AuthServiceImpl implements AuthService {
             .map(GrantedAuthority::getAuthority)
             .collect(Collectors.joining(" "));
 
-    // Log the claims values
-    log.debug("Authentication Name: {}", authentication.getName());
-    log.debug("Scope: {}", scope);
-    log.debug("Issued At: {}", now);
-    log.debug("Expires At: {}", now.plus(12, ChronoUnit.HOURS));
+//    // Log the claims values
+//    log.debug("Authentication Name: {}", authentication.getName());
+//    log.debug("Scope: {}", scope);
+//    log.debug("Issued At: {}", now);
+//    log.debug("Expires At: {}", now.plus(12, ChronoUnit.HOURS));
 
     // jwt claims
     JwtClaimsSet claimsSet = JwtClaimsSet.builder()
             .issuer("self")
             .issuedAt(now)
             .expiresAt(now.plus(12, ChronoUnit.HOURS))
-            .subject(authentication.getName())  // This is where it fails
+            .subject(authentication.getName())
             .claim("scope", scope)
             .build();
 
@@ -109,23 +110,23 @@ public class AuthServiceImpl implements AuthService {
       headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
 
       // Return the token
-      return ResponseEntity.ok().headers(headers).body(response);
+      return Response.successfulResponse("Login successful", response);
     } catch (BadCredentialsException ex) {
       // Handle bad credentials
       log.error("Authentication failed: Invalid username or password.", ex);
-      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Authentication failed. Invalid username or password.");
+      return Response.failedResponse(HttpStatus.UNAUTHORIZED.value(), "Authentication failed. Invalid username or password.");
     } catch (LockedException ex) {
       // Handle locked account
       log.error("Account is locked.", ex);
-      return ResponseEntity.status(HttpStatus.LOCKED).body("Account is locked.");
+      return Response.failedResponse(HttpStatus.LOCKED.value(), "Account is locked.");
     } catch (IllegalArgumentException ex) {
       // Handle illegal argument exception (from generateToken)
       log.error("An error occurred while generating token.", ex);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An error occurred while generating token.");
+      return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An error occurred while generating token.");
     } catch (Exception ex) {
       // Handle other exceptions
       log.error("An internal error occurred.", ex);
-      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("An internal error occurred.");
+      return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An internal error occurred.");
     }
   }
 

@@ -27,6 +27,7 @@ public class RegistrationService {
     @Transactional
     public void registerUser(String email) {
         String token = UUID.randomUUID().toString();
+
         // Check if email already exists
         userRepository.findByEmail(email).ifPresent(user -> {
             throw new IllegalArgumentException("Email already registered");
@@ -93,6 +94,43 @@ public class RegistrationService {
 
         userRepository.save(user);
         logger.info("User with email {} has been verified and password updated.", email);
+    }
+
+    @Transactional
+    public void registerTenant(String email) {
+        String token = UUID.randomUUID().toString();
+        // Check if email already exists
+        userRepository.findByEmail(email).ifPresent(user -> {
+            if(user.getIsTenant()== true){
+                throw new IllegalArgumentException("Email already registered as tenant");
+            }
+            else {
+                throw new IllegalArgumentException("Email already registered as user");
+            }
+
+        });
+
+        Users user = new Users();
+        user.setEmail(email);
+        user.setMethod("email");
+        user.setIsTenant(true);
+        user.setIsVerified(false);
+
+        redisTokenService.storeToken(token, email);
+
+        try {
+            // Attempt to save the new user
+            userRepository.save(user);
+
+            // Only send the verification email if the user is successfully saved
+            String verificationLink = verificationUrl + "?token=" + token;
+            emailService.sendVerificationEmail(email, verificationLink);
+
+        } catch (Exception e) {
+            // Handle the case where user saving fails
+            // Log the exception or perform other actions if needed
+            throw new RuntimeException("Failed to register user", e);
+        }
     }
 
 }
