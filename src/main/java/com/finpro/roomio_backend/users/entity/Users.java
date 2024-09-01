@@ -1,5 +1,6 @@
 package com.finpro.roomio_backend.users.entity;
 
+import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -40,9 +41,6 @@ public class Users {
     @Column(name = "method", length = 100)
     private String method;
 
-    @Column(name = "profile_picture")
-    private Integer profilePicture;
-
     @ColumnDefault("false")
     @Column(name = "is_tenant")
     private Boolean isTenant = false;
@@ -58,6 +56,16 @@ public class Users {
     @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "updated_at")
     private Instant updatedAt;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "avatar_id")
+    private ImageUserAvatar avatar;
+
+    @Column(name = "birthdate", length = 100)
+    private String birthdate;
+
+    @Column(name = "phonenumber", length = 100)
+    private String phonenumber;
 
     @PrePersist
     protected void onCreate() {

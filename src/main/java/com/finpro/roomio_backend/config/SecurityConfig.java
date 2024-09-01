@@ -129,7 +129,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .authorizeHttpRequests(auth -> {
-                    auth.requestMatchers("/api/v1/auth/**", "/api/v1/users/register/**", "/api/v1/users/check-email?email=**").permitAll();
+                    auth.requestMatchers("/api/v1/auth/**", "/api/v1/users/check-email?email=**").permitAll();
                     auth.requestMatchers("/send-test-email?to=**").permitAll();
                     auth.requestMatchers("/api/v1/tenant/create/**", "/api/v1/tenant/{tenantId}/update/**",
                             "/api/v1/tenant/**").hasAuthority(

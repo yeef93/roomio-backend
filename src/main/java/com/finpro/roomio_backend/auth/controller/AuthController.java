@@ -1,15 +1,13 @@
 package com.finpro.roomio_backend.auth.controller;
 
-import com.finpro.roomio_backend.auth.dto.CheckEmailDto;
-import com.finpro.roomio_backend.auth.dto.RegistrationRequestDto;
-import com.finpro.roomio_backend.auth.dto.VerificationRequestDto;
-import com.finpro.roomio_backend.auth.entity.dto.LoginRequestDto;
+import com.finpro.roomio_backend.auth.entity.dto.*;
 import com.finpro.roomio_backend.auth.service.AuthService;
 import com.finpro.roomio_backend.auth.service.RedisTokenService;
 import com.finpro.roomio_backend.auth.service.RegistrationService;
 import com.finpro.roomio_backend.responses.Response;
 import com.finpro.roomio_backend.users.entity.Users;
 import com.finpro.roomio_backend.users.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
 import org.slf4j.Logger;
@@ -25,6 +23,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
+
+import static com.cloudinary.AccessControlRule.AccessType.token;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -181,9 +181,29 @@ public class AuthController {
     @GetMapping("/logout")
     public ResponseEntity<?> logout() {
         authService.logout();
-        return ResponseEntity.ok().body(
-                "Logout request for user: " + SecurityContextHolder.getContext().getAuthentication().getName() + " successful");
+        return Response.successfulResponse("Logout request for user: " + SecurityContextHolder.getContext().getAuthentication().getName() + " successful");
     }
 
+    // > verify token
+    @PostMapping("/verify-token")
+    public ResponseEntity<Response<Object>> verifyToken(@RequestBody @Valid VerifyTokenRequestDto verifyTokenDto) {
+        try {
+            String token = verifyTokenDto.getToken();
 
+            // Log the token received
+            System.out.println("Received token: " + token);
+
+            if (redisTokenService.isTokenValid(token)) {
+                return Response.successfulResponse("Token is valid.");
+            } else {
+                return Response.failedResponse("Invalid or expired token.");
+            }
+        } catch (Exception e) {
+            // Log the exception for debugging purposes
+            e.printStackTrace(); // Consider using a logging framework in production
+
+            // Return a generic error response
+            return Response.failedResponse("An error occurred while verifying the token.");
+        }
+    }
 }

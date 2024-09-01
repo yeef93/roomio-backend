@@ -1,4 +1,4 @@
-package com.finpro.roomio_backend.auth.dto;
+package com.finpro.roomio_backend.auth.entity.dto;
 
 import lombok.Data;
 

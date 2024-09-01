@@ -1,14 +1,19 @@
 package com.finpro.roomio_backend.users.controller;
 
+import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
+import com.finpro.roomio_backend.image.entity.dto.ImageUploadRequestDto;
+import com.finpro.roomio_backend.image.entity.dto.ImageUploadResponseDto;
 import com.finpro.roomio_backend.responses.Response;
-import com.finpro.roomio_backend.users.entity.Users;
+import com.finpro.roomio_backend.users.dto.VerifyPasswordRequestDto;
+import com.finpro.roomio_backend.users.dto.VerifyPasswordResponseDto;
+import com.finpro.roomio_backend.users.entity.dto.UserProfileDto;
 import com.finpro.roomio_backend.users.service.UserService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/v1/users")
@@ -20,18 +25,44 @@ public class UserController {
         this.userService = userService;
     }
 
-    @GetMapping("/check-email")
-    public ResponseEntity<Response<Object>> checkEmail(@RequestParam String email) {
-        Optional<Users> userOptional = userService.getUserByEmail(email);
-
-        if (userOptional.isPresent()) {
-            Users user = userOptional.get();
-            Map<String, Object> data = new HashMap<>();
-            data.put("exists", true);
-            data.put("method", user.getMethod());
-            return Response.successfulResponse("Email found", data);
+    // * Get logged in user's profile
+    @GetMapping("/me")
+    public ResponseEntity<Response<UserProfileDto>> getUserProfile() {
+        UserProfileDto userProfile = userService.getProfile();
+        if (userProfile != null) {
+            return Response.successfulResponse(HttpStatus.OK.value(), HttpStatus.OK.getReasonPhrase(), userProfile);
         } else {
-            return Response.failedResponse("Email does not exist");
+            return Response.failedResponse(HttpStatus.NOT_FOUND.value(), "There is no user profile", null);
+        }
+    }
+
+    @PostMapping("/verify-password")
+    public ResponseEntity<?> verifyPassword(@RequestBody VerifyPasswordRequestDto request) {
+        String currentUserEmail = getCurrentUserEmail();
+
+        boolean isPasswordValid = userService.verifyPassword(currentUserEmail, request.getPassword());
+
+        return ResponseEntity.ok(new VerifyPasswordResponseDto(isPasswordValid));
+    }
+
+    private String getCurrentUserEmail() {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal instanceof UserDetails) {
+            return ((UserDetails) principal).getUsername();
+        } else {
+            return principal.toString();
+        }
+    }
+
+    // * upload image
+    @PostMapping("/me/image/upload")
+    public ResponseEntity<Response<ImageUploadResponseDto>> uploadImage(ImageUploadRequestDto requestDto) {
+        ImageUserAvatar uploadedImageUserAvatar = userService.uploadAvatar(requestDto);
+        if (uploadedImageUserAvatar == null) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return Response.successfulResponse(HttpStatus.OK.value(), "Image success uploaded!", new ImageUploadResponseDto(
+                    uploadedImageUserAvatar));
         }
     }
 }

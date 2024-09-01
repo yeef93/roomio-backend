@@ -33,11 +33,13 @@ public class RegistrationService {
             throw new IllegalArgumentException("Email already registered");
         });
 
+        String firstname = generateFirstname(email);
+
         Users user = new Users();
         user.setEmail(email);
         user.setMethod("email");
-//        user.setVerificationToken(UUID.randomUUID().toString());
         user.setIsVerified(false);
+        user.setFirstname(firstname);
 
         redisTokenService.storeToken(token, email);
 
@@ -54,6 +56,15 @@ public class RegistrationService {
             // Log the exception or perform other actions if needed
             throw new RuntimeException("Failed to register user", e);
         }
+    }
+
+    // Method to generate a firstname
+    private String generateFirstname(String email) {
+        // Extract part of the email (before @)
+        String emailName = email.substring(0, email.indexOf("@"));
+
+        // get emailname
+        return emailName;
     }
 
     @Transactional
@@ -110,11 +121,14 @@ public class RegistrationService {
 
         });
 
+        String firstname = generateFirstname(email);
+
         Users user = new Users();
         user.setEmail(email);
         user.setMethod("email");
         user.setIsTenant(true);
         user.setIsVerified(false);
+        user.setFirstname(firstname);
 
         redisTokenService.storeToken(token, email);
 
