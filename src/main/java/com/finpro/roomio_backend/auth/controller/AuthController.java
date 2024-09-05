@@ -47,13 +47,13 @@ public class AuthController {
             Map<String, Object> data = new HashMap<>();
             data.put("exists", true);
             data.put("method", user.getMethod());
-            data.put("type", user.getIsTenant() ? "tenant" : "user");
+            data.put("role", user.getIsTenant() ? "TENANT" : "USER");
             data.put("verified", user.getIsVerified());
             return Response.successfulResponse("Email found", data);
         } else {
             Map<String, Object> data = new HashMap<>();
             data.put("exists", false);
-            data.put("type", null);
+            data.put("role", null);
             return Response.successfulResponse("Email not found", data);
         }
     }
@@ -125,6 +125,16 @@ public class AuthController {
         }
 
         try {
+            // Check if the user associated with the token is already verified
+            Users user = registrationService.findUserByEmail(storedToken);
+            if (user == null) {
+                return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "User not found.");
+            }
+
+            if (user.getIsVerified()) {
+                return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "User is already verified. Password cannot be updated.");
+            }
+
             // Encrypt password before saving
             String hashedPassword = passwordEncoder.encode(password);
 

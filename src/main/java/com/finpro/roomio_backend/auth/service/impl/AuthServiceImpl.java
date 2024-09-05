@@ -98,6 +98,7 @@ public class AuthServiceImpl implements AuthService {
       // Generate response
       LoginResponseDto response = new LoginResponseDto();
       response.setMessage("Welcome, " + userDetails.getUsername() + "!");
+      response.setRole(userDetails.getIsTenant() ? "TENANT" : "USER");
       response.setToken(token);
 
       // Create response cookie

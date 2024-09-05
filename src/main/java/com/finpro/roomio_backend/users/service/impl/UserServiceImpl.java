@@ -1,4 +1,4 @@
-package com.finpro.roomio_backend.users.service;
+package com.finpro.roomio_backend.users.service.impl;
 
 import com.finpro.roomio_backend.exceptions.user.UserNotFoundException;
 import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
@@ -7,6 +7,7 @@ import com.finpro.roomio_backend.image.service.ImageService;
 import com.finpro.roomio_backend.users.entity.Users;
 import com.finpro.roomio_backend.users.entity.dto.UserProfileDto;
 import com.finpro.roomio_backend.users.repository.UsersRepository;
+import com.finpro.roomio_backend.users.service.UserService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;

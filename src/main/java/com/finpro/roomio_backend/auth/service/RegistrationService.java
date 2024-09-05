@@ -1,6 +1,7 @@
 package com.finpro.roomio_backend.auth.service;
 
 
+import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import com.finpro.roomio_backend.users.entity.Users;
 import com.finpro.roomio_backend.users.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,6 +41,11 @@ public class RegistrationService {
         user.setMethod("email");
         user.setIsVerified(false);
         user.setFirstname(firstname);
+
+        // Set the avatar with ID 1
+        ImageUserAvatar avatar = new ImageUserAvatar();
+        avatar.setId(1L); // assuming ID is of type Long
+        user.setAvatar(avatar);
 
         redisTokenService.storeToken(token, email);
 
@@ -145,6 +151,12 @@ public class RegistrationService {
             // Log the exception or perform other actions if needed
             throw new RuntimeException("Failed to register user", e);
         }
+    }
+
+    public Users findUserByEmail(String email) {
+        // Assuming UserRepository has a method to find a user by email
+        return userRepository.findByEmail(email)
+                .orElse(null); // Return null if user not found
     }
 
 }

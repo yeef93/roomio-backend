@@ -21,7 +21,7 @@ public class UserAuth extends Users implements UserDetails {
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     List<GrantedAuthority> authorities = new ArrayList<>();
-    if (user.getEmail().equals("yuninda")) {
+    if (user.getEmail().equals("yunindafaranika@gmail.com")) {
       authorities.add(() -> "ROLE_SUPERMAN");
     } else if (user.getIsTenant()) {
       authorities.add(() -> "ROLE_TENANT");
@@ -39,5 +39,10 @@ public class UserAuth extends Users implements UserDetails {
   @Override
   public String getUsername() {
     return user.getEmail();
+  }
+
+  @Override
+  public Boolean getIsTenant() {
+    return user.getIsTenant();
   }
 }
