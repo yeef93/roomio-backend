@@ -3,6 +3,7 @@ package com.finpro.roomio_backend.users.entity;
 import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.Date;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -62,7 +63,7 @@ public class Users {
     private ImageUserAvatar avatar;
 
     @Column(name = "birthdate", length = 100)
-    private String birthdate;
+    private Date birthdate;
 
     @Column(name = "phonenumber", length = 100)
     private String phonenumber;

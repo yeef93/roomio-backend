@@ -1,4 +1,4 @@
-package com.finpro.roomio_backend.auth.entity.dto;
+package com.finpro.roomio_backend.auth.entity.dto.login;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;

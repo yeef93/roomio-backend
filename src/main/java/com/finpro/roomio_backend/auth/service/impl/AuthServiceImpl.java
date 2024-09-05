@@ -1,8 +1,8 @@
 package com.finpro.roomio_backend.auth.service.impl;
 
 import com.finpro.roomio_backend.auth.entity.UserAuth;
-import com.finpro.roomio_backend.auth.entity.dto.LoginRequestDto;
-import com.finpro.roomio_backend.auth.entity.dto.LoginResponseDto;
+import com.finpro.roomio_backend.auth.entity.dto.login.LoginRequestDto;
+import com.finpro.roomio_backend.auth.entity.dto.login.LoginResponseDto;
 import com.finpro.roomio_backend.auth.repository.AuthRedisRepository;
 import com.finpro.roomio_backend.auth.service.AuthService;
 import com.finpro.roomio_backend.responses.Response;

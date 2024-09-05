@@ -1,6 +1,7 @@
 package com.finpro.roomio_backend.auth.controller;
 
 import com.finpro.roomio_backend.auth.entity.dto.*;
+import com.finpro.roomio_backend.auth.entity.dto.login.LoginRequestDto;
 import com.finpro.roomio_backend.auth.service.AuthService;
 import com.finpro.roomio_backend.auth.service.RedisTokenService;
 import com.finpro.roomio_backend.auth.service.RegistrationService;
@@ -20,11 +21,10 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-
-import static com.cloudinary.AccessControlRule.AccessType.token;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -216,4 +216,66 @@ public class AuthController {
             return Response.failedResponse("An error occurred while verifying the token.");
         }
     }
+
+    // > forgot password
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Response<Object>> forgotPassword(@RequestBody @Valid CheckEmailDto checkEmailDto) {
+        try {
+            registrationService.forgotPassword(checkEmailDto.getEmail());
+            return Response.successfulResponse("Reset Password link successful generate, please check your email for reset password.");
+        } catch (IllegalArgumentException ex) {
+            // Log the exception message
+            System.out.println("IllegalArgumentException: " + ex.getMessage());
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        } catch (Exception ex) {
+            // Log the exception message and stack trace
+            ex.printStackTrace();
+            return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "An unexpected error occurred.");
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Response<String>> resetPassword(@RequestBody VerificationRequestDto request) {
+        String token = request.getToken();
+        String password = request.getPassword();
+        String confirmPassword = request.getConfirmPassword();
+
+        // Check if passwords match
+        if (!password.equals(confirmPassword)) {
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Passwords do not match.");
+        }
+
+        // Retrieve token from Redis
+        String storedToken = redisTokenService.getToken(token);
+        if (storedToken == null) {
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Token is expired or invalid.");
+        }
+
+        try {
+            // Check if the user associated with the token is already verified
+            Users user = registrationService.findUserByEmail(storedToken);
+            if (user == null) {
+                return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "User not found.");
+            }
+
+            // Encrypt password before saving
+            String hashedPassword = passwordEncoder.encode(password);
+
+            // Verify user and save the password
+            registrationService.verifyUser(storedToken, hashedPassword);
+
+            // Delete the token
+            redisTokenService.deleteToken(token);
+
+            return Response.successfulResponse(HttpStatus.OK.value(), "Password successfuly reset, you can now log in.", "Reset Password successful");
+        } catch (Exception e) {
+            // Log the exception with a logger
+            Logger logger = LoggerFactory.getLogger(getClass());
+            logger.error("Error during reset password: {}", e.getMessage(), e);
+
+            return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Reset Password failed: " + e.getMessage());
+        }
+    }
+
+
 }

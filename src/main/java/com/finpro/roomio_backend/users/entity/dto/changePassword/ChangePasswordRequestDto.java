@@ -1,4 +1,4 @@
-package com.miniproject.eventastic.auth.entity.dto.changePassword;
+package com.finpro.roomio_backend.users.entity.dto.changePassword;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;

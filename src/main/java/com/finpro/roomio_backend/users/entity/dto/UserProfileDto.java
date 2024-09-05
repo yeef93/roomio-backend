@@ -19,7 +19,7 @@ public class UserProfileDto {
     private String email;
     private boolean isTenant;
     private ImageUploadResponseDto avatar;
-    private String birthdate;
+    private Date birthdate;
     private String phonenumber;
 
     public UserProfileDto(Users user) {

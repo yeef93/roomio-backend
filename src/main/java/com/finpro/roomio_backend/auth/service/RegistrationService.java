@@ -25,6 +25,9 @@ public class RegistrationService {
     @Value("${app.verification-url}verify-page")
     private String verificationUrl;
 
+    @Value("${app.verification-url}reset-password")
+    private String resetPasswordUrl;
+
     @Transactional
     public void registerUser(String email) {
         String token = UUID.randomUUID().toString();
@@ -157,6 +160,29 @@ public class RegistrationService {
         // Assuming UserRepository has a method to find a user by email
         return userRepository.findByEmail(email)
                 .orElse(null); // Return null if user not found
+    }
+
+    @Transactional
+    public void forgotPassword(String email) {
+        String token = UUID.randomUUID().toString();
+
+        // Check if email is not registered
+        if (userRepository.findByEmail(email).isEmpty()) {
+            throw new IllegalArgumentException("Email not registered");
+        }
+
+        redisTokenService.storeToken(token, email);
+
+        try {
+            // Send the forgot password
+            String forgotLink = resetPasswordUrl + "?token=" + token;
+            emailService.sendForgotPasswordEmail(email, forgotLink);
+
+        } catch (Exception e) {
+            // Handle the case where user saving fails
+            // Log the exception or perform other actions if needed
+            throw new RuntimeException("Failed to send reset password mail", e);
+        }
     }
 
 }

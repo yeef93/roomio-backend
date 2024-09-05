@@ -1,4 +1,4 @@
-package com.finpro.roomio_backend.users.dto;
+package com.finpro.roomio_backend.users.entity.dto;
 
 import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
