@@ -7,7 +7,7 @@ import com.finpro.roomio_backend.auth.service.RedisTokenService;
 import com.finpro.roomio_backend.auth.service.RegistrationService;
 import com.finpro.roomio_backend.responses.Response;
 import com.finpro.roomio_backend.users.entity.Users;
-import com.finpro.roomio_backend.users.service.UserService;
+import com.finpro.roomio_backend.users.service.UsersService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.java.Log;
@@ -21,7 +21,6 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -33,7 +32,7 @@ import java.util.Optional;
 public class AuthController {
 
     private final RegistrationService registrationService;
-    private final UserService userService;
+    private final UsersService userService;
     private final AuthService authService;
     private final RedisTokenService redisTokenService;
     private final BCryptPasswordEncoder passwordEncoder;

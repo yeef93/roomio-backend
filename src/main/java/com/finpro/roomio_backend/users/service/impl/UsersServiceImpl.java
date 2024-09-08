@@ -10,7 +10,7 @@ import com.finpro.roomio_backend.users.entity.dto.UserProfileDto;
 import com.finpro.roomio_backend.users.entity.dto.changePassword.ChangePasswordRequestDto;
 import com.finpro.roomio_backend.users.entity.dto.userManagement.ProfileUpdateRequestDTO;
 import com.finpro.roomio_backend.users.repository.UsersRepository;
-import com.finpro.roomio_backend.users.service.UserService;
+import com.finpro.roomio_backend.users.service.UsersService;
 import jakarta.transaction.Transactional;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.core.Authentication;
@@ -18,17 +18,16 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
 
 @Service
-public class UserServiceImpl implements UserService {
+public class UsersServiceImpl implements UsersService {
 
     private final UsersRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final ImageService imageService;
 
-    public UserServiceImpl(UsersRepository userRepository, PasswordEncoder passwordEncoder, ImageService imageService) {
+    public UsersServiceImpl(UsersRepository userRepository, PasswordEncoder passwordEncoder, ImageService imageService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.imageService = imageService;

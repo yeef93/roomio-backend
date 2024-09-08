@@ -3,14 +3,14 @@ package com.finpro.roomio_backend.users.controller;
 import com.finpro.roomio_backend.exceptions.image.ImageNotFoundException;
 import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import com.finpro.roomio_backend.image.entity.dto.ImageUploadRequestDto;
-import com.finpro.roomio_backend.image.entity.dto.ImageUploadResponseDto;
+import com.finpro.roomio_backend.image.entity.dto.AvatarImageResponseDto;
 import com.finpro.roomio_backend.responses.Response;
 import com.finpro.roomio_backend.users.entity.dto.VerifyPasswordRequestDto;
 import com.finpro.roomio_backend.users.entity.dto.VerifyPasswordResponseDto;
 import com.finpro.roomio_backend.users.entity.dto.UserProfileDto;
 import com.finpro.roomio_backend.users.entity.dto.changePassword.ChangePasswordRequestDto;
 import com.finpro.roomio_backend.users.entity.dto.userManagement.ProfileUpdateRequestDTO;
-import com.finpro.roomio_backend.users.service.UserService;
+import com.finpro.roomio_backend.users.service.UsersService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,9 +21,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/users")
 public class UserController {
 
-    private final UserService userService;
+    private final UsersService userService;
 
-    public UserController(UserService userService) {
+    public UserController(UsersService userService) {
         this.userService = userService;
     }
 
@@ -48,12 +48,12 @@ public class UserController {
 
     // * upload image
     @PostMapping("/me/image/upload")
-    public ResponseEntity<Response<ImageUploadResponseDto>> uploadImage(ImageUploadRequestDto requestDto) {
+    public ResponseEntity<Response<AvatarImageResponseDto>> uploadImage(ImageUploadRequestDto requestDto) {
         ImageUserAvatar uploadedImageUserAvatar = userService.uploadAvatar(requestDto);
         if (uploadedImageUserAvatar == null) {
             return ResponseEntity.noContent().build();
         } else {
-            return Response.successfulResponse(HttpStatus.OK.value(), "Image success uploaded!", new ImageUploadResponseDto(
+            return Response.successfulResponse(HttpStatus.OK.value(), "Image success uploaded!", new AvatarImageResponseDto(
                     uploadedImageUserAvatar));
         }
     }

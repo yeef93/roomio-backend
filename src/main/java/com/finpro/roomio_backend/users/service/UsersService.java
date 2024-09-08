@@ -9,7 +9,7 @@ import com.finpro.roomio_backend.users.entity.dto.userManagement.ProfileUpdateRe
 
 import java.util.Optional;
 
-public interface UserService {
+public interface UsersService {
     Optional<Users> getUserByEmail(String email);
 
     Users getByUsername(String username);

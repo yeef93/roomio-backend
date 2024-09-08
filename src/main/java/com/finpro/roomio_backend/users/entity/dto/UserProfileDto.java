@@ -1,6 +1,6 @@
 package com.finpro.roomio_backend.users.entity.dto;
 
-import com.finpro.roomio_backend.image.entity.dto.ImageUploadResponseDto;
+import com.finpro.roomio_backend.image.entity.dto.AvatarImageResponseDto;
 import com.finpro.roomio_backend.users.entity.Users;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,7 +18,7 @@ public class UserProfileDto {
     private String lastname;
     private String email;
     private boolean isTenant;
-    private ImageUploadResponseDto avatar;
+    private AvatarImageResponseDto avatar;
     private Date birthdate;
     private String phonenumber;
 
@@ -28,7 +28,7 @@ public class UserProfileDto {
         this.lastname = user.getLastname();
         this.email = user.getEmail();
         this.isTenant = user.getIsTenant();
-        this.avatar = user.getAvatar() == null ? null :new ImageUploadResponseDto(user.getAvatar());
+        this.avatar = user.getAvatar() == null ? null :new AvatarImageResponseDto(user.getAvatar());
         this.birthdate = user.getBirthdate();
         this.phonenumber = user.getPhonenumber();
 

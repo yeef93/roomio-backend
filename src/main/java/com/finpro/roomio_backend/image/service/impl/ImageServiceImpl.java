@@ -2,8 +2,10 @@ package com.finpro.roomio_backend.image.service.impl;
 
 
 import com.finpro.roomio_backend.exceptions.image.ImageNotFoundException;
+import com.finpro.roomio_backend.image.entity.ImageCategories;
 import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import com.finpro.roomio_backend.image.entity.dto.ImageUploadRequestDto;
+import com.finpro.roomio_backend.image.repository.ImageCategoriesRepository;
 import com.finpro.roomio_backend.image.repository.ImageUserAvatarRepository;
 import com.finpro.roomio_backend.image.service.CloudinaryService;
 import com.finpro.roomio_backend.image.service.ImageService;
@@ -21,6 +23,7 @@ import org.springframework.stereotype.Service;
 public class ImageServiceImpl implements ImageService {
 
   private final ImageUserAvatarRepository imageUserAvatarRepository;
+  private final ImageCategoriesRepository imageCategoriesRepository;
   private final CloudinaryService cloudinaryService;
 
   @Override
@@ -42,7 +45,7 @@ public class ImageServiceImpl implements ImageService {
 
     String imageName = requestDto.getFileName();
     String imageUrl = cloudinaryService.uploadFile(requestDto.getFile(),
-        "eventastic/users/" + user.getId().toString());
+        "roomio/users/" + user.getId().toString());
 
     ImageUserAvatar imageUserAvatar = new ImageUserAvatar();
     imageUserAvatar.setImageName(imageName);
@@ -60,6 +63,26 @@ public class ImageServiceImpl implements ImageService {
     if (requestDto.getFileName().isEmpty() || requestDto.getFile().isEmpty()) {
       throw new IllegalArgumentException("Invalid upload request");
     }
+  }
+
+  @Override
+  @Transactional
+  public ImageCategories uploadCategories(ImageUploadRequestDto requestDto, Users user) throws IllegalArgumentException {
+    validateUploadRequest(requestDto);
+
+    String imageName = requestDto.getFileName();
+    String imageUrl = cloudinaryService.uploadFile(requestDto.getFile(),
+            "roomio/categories/" + user.getId().toString());
+
+    ImageCategories imageCategories = new ImageCategories();
+    imageCategories.setImageName(imageName);
+    imageCategories.setImageUrl(imageUrl);
+    imageCategories.setUser(user);
+    if (imageCategories.getImageUrl() == null) {
+      // Handle error appropriately
+      return null;
+    }
+    return imageCategoriesRepository.save(imageCategories);
   }
 
 }
