@@ -1,7 +1,6 @@
 package com.finpro.roomio_backend.categories.entity;
 
 import com.finpro.roomio_backend.image.entity.ImageCategories;
-import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import com.finpro.roomio_backend.users.entity.Users;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
@@ -9,7 +8,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.annotations.ColumnDefault;
 
 import java.time.Instant;
 
@@ -36,28 +34,18 @@ public class Categories {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tenant_id")
-    private Users users;
+    private Users user;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
     @Column(name = "created_at", updatable = false)
     private Instant createdAt;
 
-    @ColumnDefault("CURRENT_TIMESTAMP")
-    @Column(name = "updated_at")
-    private Instant updatedAt;
-
-    // Reference to the ImageCategories table
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "image_id")
-    private ImageCategories imageCategories;  // This will reference the image table
+    private ImageCategories imageCategories;
 
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();
     }
 
-    @PreUpdate
-    protected void onUpdate() {
-        updatedAt = Instant.now();
-    }
 }

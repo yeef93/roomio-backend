@@ -108,7 +108,7 @@ public class AuthServiceImpl implements AuthService {
               .maxAge(43200) // 12 hours
               .build();
       HttpHeaders headers = new HttpHeaders();
-      headers.add(HttpHeaders.SET_COOKIE, cookie.toString());
+      headers.add("Set-Cookie", cookie.toString());
 
       // Return the token
       return Response.successfulResponse("Login successful", response);

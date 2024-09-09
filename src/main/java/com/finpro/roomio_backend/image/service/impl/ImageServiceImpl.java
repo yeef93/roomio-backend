@@ -16,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Data
 @RequiredArgsConstructor
@@ -83,6 +85,17 @@ public class ImageServiceImpl implements ImageService {
       return null;
     }
     return imageCategoriesRepository.save(imageCategories);
+  }
+
+  @Override
+  public Optional<ImageCategories> findImageById(Long imageId) {
+    return imageCategoriesRepository.findById(imageId);
+  }
+
+  @Override
+  public ImageCategories findById(Long imageId) {
+    return imageCategoriesRepository.findById(imageId)
+            .orElseThrow(() -> new ImageNotFoundException("ImageUserAvatar not found"));
   }
 
 }

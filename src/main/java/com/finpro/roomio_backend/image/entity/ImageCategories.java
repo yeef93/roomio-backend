@@ -3,7 +3,6 @@ package com.finpro.roomio_backend.image.entity;
 
 import com.finpro.roomio_backend.users.entity.Users;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.ColumnDefault;

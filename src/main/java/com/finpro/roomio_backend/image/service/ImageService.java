@@ -6,6 +6,8 @@ import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import com.finpro.roomio_backend.image.entity.dto.ImageUploadRequestDto;
 import com.finpro.roomio_backend.users.entity.Users;
 
+import java.util.Optional;
+
 public interface ImageService {
 
   ImageUserAvatar uploadAvatar(ImageUploadRequestDto imageUploadRequestDto, Users user);
@@ -16,4 +18,7 @@ public interface ImageService {
 
   ImageCategories uploadCategories(ImageUploadRequestDto imageUploadRequestDto, Users user);
 
+  Optional<ImageCategories> findImageById(Long imageId);
+
+  ImageCategories findById(Long imageId);
 }
