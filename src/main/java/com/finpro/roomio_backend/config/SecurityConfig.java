@@ -131,10 +131,13 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> {
                     auth.requestMatchers("/api/v1/auth/**", "/api/v1/users/check-email?email=**").permitAll();
                     auth.requestMatchers("/send-test-email?to=**").permitAll();
+                    auth.requestMatchers("/api/v1/orders/midtrans-notification").permitAll();
                     auth.requestMatchers("/api/v1/tenant/create/**", "/api/v1/tenant/{tenantId}/update/**",
                             "/api/v1/tenant/**").hasAuthority(
                             "SCOPE_ROLE_TENANT");
                     auth.anyRequest().authenticated();
+//                    auth.anyRequest().permitAll();
+
                 })
                 .exceptionHandling(e -> {
                     e.accessDeniedHandler(new CustomAccessDeniedHandler());
