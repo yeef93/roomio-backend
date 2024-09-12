@@ -72,7 +72,6 @@ public class CategoriesServiceImpl implements CategoriesService {
     }
 
 
-
     // Get all categories
     @Override
     public List<Categories> getAllCategories() {
@@ -89,6 +88,41 @@ public class CategoriesServiceImpl implements CategoriesService {
     @Override
     public Optional<Categories> getCategoryByName(String name) {
         return categoriesRepository.findByName(name);
+    }
+
+    @Override
+    public Optional<Categories> updateCategory(Long id, CategoriesRequestDto requestDto) {
+        Optional<Categories> existingCategory = categoriesRepository.findById(id);
+
+        Users tenant = usersService.getCurrentUser();
+
+        // Check if the current user is allowed to create a category
+        if (!tenant.getIsTenant()) {
+            throw new AccessDeniedException("You do not have permission to create categories.");
+        }
+
+        if (existingCategory.isPresent()) {
+            Categories category = existingCategory.get();
+            category.setName(requestDto.getName());
+            category.setDescription(requestDto.getDescription());
+            // Set imageCategories if provided
+            Optional<ImageCategories> imageOptional = Optional.ofNullable(imageService.findById(requestDto.getImageId()));
+            imageOptional.ifPresent(category::setImageCategories);
+            category.setUser(tenant);  // Associate category with the current user
+            return Optional.of(categoriesRepository.save(category));
+        } else {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public boolean deleteCategory(Long id) {
+        Optional<Categories> category = categoriesRepository.findById(id);
+        if (category.isPresent()) {
+            categoriesRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
 }

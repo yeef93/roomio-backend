@@ -5,6 +5,8 @@ import com.finpro.roomio_backend.auth.entity.dto.login.LoginRequestDto;
 import com.finpro.roomio_backend.auth.service.AuthService;
 import com.finpro.roomio_backend.auth.service.RedisTokenService;
 import com.finpro.roomio_backend.auth.service.RegistrationService;
+import com.finpro.roomio_backend.categories.entity.Categories;
+import com.finpro.roomio_backend.categories.entity.dto.CategoriesResponseDto;
 import com.finpro.roomio_backend.responses.Response;
 import com.finpro.roomio_backend.users.entity.Users;
 import com.finpro.roomio_backend.users.service.UsersService;
@@ -22,8 +24,12 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -39,22 +45,26 @@ public class AuthController {
 
     @PostMapping("/check-email")
     public ResponseEntity<Response<Object>> checkEmail(@Validated @RequestBody CheckEmailDto check) {
-        Optional<Users> userOptional = userService.getUserByEmail(check.getEmail());
-
-        if (userOptional.isPresent()) {
-            Users user = userOptional.get();
-            Map<String, Object> data = new HashMap<>();
-            data.put("exists", true);
-            data.put("method", user.getMethod());
-            data.put("role", user.getIsTenant() ? "TENANT" : "USER");
-            data.put("verified", user.getIsVerified());
-            return Response.successfulResponse("Email found", data);
-        } else {
-            Map<String, Object> data = new HashMap<>();
-            data.put("exists", false);
-            data.put("role", null);
-            return Response.successfulResponse("Email not found", data);
+        try {
+            Optional<Users> userOptional = userService.getUserByEmail(check.getEmail());
+            if (userOptional.isPresent()) {
+                Users user = userOptional.get();
+                Map<String, Object> data = new HashMap<>();
+                data.put("exists", true);
+                data.put("method", user.getMethod());
+                data.put("role", user.getIsTenant() ? "TENANT" : "USER");
+                data.put("verified", user.getIsVerified());
+                return Response.successfulResponse("Email found", data);
+            } else {
+                Map<String, Object> data = new HashMap<>();
+                data.put("exists", false);
+                data.put("role", null);
+                return Response.successfulResponse("Email not found", data);
+            }
+        } catch (Exception e) {
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to check email status: " + e.getMessage());
         }
+
     }
 
     @PostMapping("/register/user")
@@ -93,17 +103,16 @@ public class AuthController {
 
     @GetMapping("/verify-page")
     public ResponseEntity<Response<Object>> getVerificationPage(@RequestParam String token) {
-        String storedToken = redisTokenService.getToken(token);
-
-        if (storedToken == null) {
-            // Return a failed response if the token is invalid or expired
-            Response<Object> response = Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Token is expired or invalid.").getBody();
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+        try {
+            String storedToken = redisTokenService.getToken(token);
+            if (storedToken == null) {
+                // Return a failed response if the token is invalid or expired
+                return  Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Token is expired or invalid.");
+            }
+            return Response.successfulResponse("Token is valid", null);
+        } catch (Exception e) {
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to verify token: " + e.getMessage());
         }
-
-        // Return a successful response if the token is valid
-        Response<Object> response = Response.successfulResponse("Token is valid", null).getBody();
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/verify")

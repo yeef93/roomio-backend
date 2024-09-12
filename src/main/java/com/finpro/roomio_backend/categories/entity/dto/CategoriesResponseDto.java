@@ -8,8 +8,7 @@ public class CategoriesResponseDto {
     private Long id;
     private String name;
     private String description;
-    private Long imageId;
-    private String imageUrl;
+    private ImageDto image;
 
     @Data
     public static class ImageDto {
@@ -17,16 +16,22 @@ public class CategoriesResponseDto {
         private String imageUrl;
     }
 
+    // Constructor that accepts a Categories entity
     public CategoriesResponseDto(Categories categories) {
         this.id = categories.getId();
         this.name = categories.getName();
         this.description = categories.getDescription();
-        this.imageId = categories.getImageCategories().getId();
-        this.imageUrl = categories.getImageCategories().getImageUrl();
+
+        // Check if image exists and map to ImageDto
+        if (categories.getImageCategories() != null) {
+            this.image = new ImageDto();
+            this.image.setId(categories.getImageCategories().getId());
+            this.image.setImageUrl(categories.getImageCategories().getImageUrl());
+        }
     }
 
+    // Utility method to map Categories entity to CategoriesResponseDto
     public CategoriesResponseDto toDto(Categories categories) {
         return new CategoriesResponseDto(categories);
     }
-
 }

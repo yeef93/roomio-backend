@@ -24,4 +24,9 @@ public interface CategoriesService {
     // get category by name
     Optional<Categories> getCategoryByName(String name);
 
+    //update category
+    Optional<Categories> updateCategory(Long id, CategoriesRequestDto requestDto);
+
+    //delete category
+    boolean deleteCategory(Long id);
 }
