@@ -1,5 +1,6 @@
 package com.finpro.roomio_backend.responses;
 
+import com.finpro.roomio_backend.properties.entity.dto.PropertiesResponseDto;
 import lombok.Data;
 import lombok.ToString;
 import org.springframework.data.domain.Page;
@@ -7,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @Data
@@ -62,17 +64,13 @@ public class Response<T> {
   }
 
   // Method for handling paginated responses
-  public static ResponseEntity<Response<Map<String, Object>>> responseMapper(int statusCode, String message,
-                                                                             Page<?> page) {
-    if (page != null) {
-      Map<String, Object> response = new HashMap<>();
-      response.put("currentPage", page.getNumber());
-      response.put("totalPages", page.getTotalPages());
-      response.put("totalElements", page.getTotalElements());
-      response.put("events", page.getContent());
-      return Response.successfulResponse(statusCode, message, response);
-    } else {
-      return Response.failedResponse(HttpStatus.NOT_FOUND.value(), "No data found", null);
-    }
+  public static ResponseEntity<?> successfulResponse(int statusCode, String message, List<PropertiesResponseDto> data, int totalPages, long totalElements) {
+    Map<String, Object> responseBody = new HashMap<>();
+    responseBody.put("status", statusCode);
+    responseBody.put("message", message);
+    responseBody.put("data", data);
+    responseBody.put("totalPages", totalPages);
+    responseBody.put("totalElements", totalElements);
+    return ResponseEntity.status(statusCode).body(responseBody);
   }
 }

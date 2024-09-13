@@ -18,7 +18,9 @@ public class RoomResponseDto {
     private Integer qty;
     private BigDecimal basePrice;
     private Integer totalBathroom;
-
+    private Boolean isActive;
+    private BigDecimal currentPrice;
+    private BigDecimal actualPrice;
 
     public RoomResponseDto(Rooms room) {
         this.id = room.getId();
@@ -31,5 +33,7 @@ public class RoomResponseDto {
         this.qty = room.getQty();
         this.basePrice = room.getBasePrice();
         this.totalBathroom = room.getTotalBathroom();
+        this.isActive = room.getIsActive();
+        this.actualPrice = room.getActualPrice(); // Use the method to get the actual price
     }
 }

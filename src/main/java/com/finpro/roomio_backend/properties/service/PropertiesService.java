@@ -2,7 +2,10 @@ package com.finpro.roomio_backend.properties.service;
 
 import com.finpro.roomio_backend.properties.entity.Properties;
 import com.finpro.roomio_backend.properties.entity.dto.PropertiesRequestDto;
+import com.finpro.roomio_backend.properties.entity.dto.RoomResponseDto;
+import org.springframework.data.domain.Page;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,4 +28,10 @@ public interface PropertiesService {
 
     //delete property
     boolean deleteProperty(Long id);
+
+    Page<Properties> getProperties(String search, String city, String sortBy, String direction, int page, int size);
+
+//    List<RoomResponseDto> getRoomsWithPeakRates(Long propertyId);
+//
+//    BigDecimal getPeakRateForRoom(Long roomId);
 }

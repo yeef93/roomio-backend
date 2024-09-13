@@ -4,17 +4,21 @@ package com.finpro.roomio_backend.image.service.impl;
 import com.finpro.roomio_backend.exceptions.image.ImageNotFoundException;
 import com.finpro.roomio_backend.image.entity.ImageCategories;
 import com.finpro.roomio_backend.image.entity.ImageProperties;
+import com.finpro.roomio_backend.image.entity.ImageRoom;
 import com.finpro.roomio_backend.image.entity.ImageUserAvatar;
 import com.finpro.roomio_backend.image.entity.dto.ImageUploadRequestDto;
 import com.finpro.roomio_backend.image.entity.dto.PropertiesImageResponseDto;
 import com.finpro.roomio_backend.image.entity.dto.PropertiesUploadRequestDto;
 import com.finpro.roomio_backend.image.repository.ImageCategoriesRepository;
 import com.finpro.roomio_backend.image.repository.ImagePropertiesRepository;
+import com.finpro.roomio_backend.image.repository.ImageRoomRepository;
 import com.finpro.roomio_backend.image.repository.ImageUserAvatarRepository;
 import com.finpro.roomio_backend.image.service.CloudinaryService;
 import com.finpro.roomio_backend.image.service.ImageService;
 import com.finpro.roomio_backend.properties.entity.Properties;
+import com.finpro.roomio_backend.properties.entity.Rooms;
 import com.finpro.roomio_backend.properties.repository.PropertiesRepository;
+import com.finpro.roomio_backend.properties.repository.RoomsRepository;
 import com.finpro.roomio_backend.users.entity.Users;
 import com.finpro.roomio_backend.users.service.UsersService;
 import jakarta.transaction.Transactional;
@@ -39,8 +43,10 @@ public class ImageServiceImpl implements ImageService {
   private final ImageUserAvatarRepository imageUserAvatarRepository;
   private final ImageCategoriesRepository imageCategoriesRepository;
   private final ImagePropertiesRepository imagePropertiesRepository;
+  private final ImageRoomRepository imageRoomRepository;
   private final CloudinaryService cloudinaryService;
   private final PropertiesRepository propertiesRepository;
+  private final RoomsRepository roomsRepository;
 
   @Override
   public void saveAvatar(ImageUserAvatar imageUserAvatar) {
@@ -159,13 +165,6 @@ public class ImageServiceImpl implements ImageService {
             .map(PropertiesImageResponseDto::new)
             .collect(Collectors.toList());
   }
-
-
-
-
-
-
-
   @Override
   public Optional<ImageCategories> findImageById(Long imageId) {
     return imageCategoriesRepository.findById(imageId);
@@ -175,6 +174,49 @@ public class ImageServiceImpl implements ImageService {
   public ImageCategories findById(Long imageId) {
     return imageCategoriesRepository.findById(imageId)
             .orElseThrow(() -> new ImageNotFoundException("ImageUserAvatar not found"));
+  }
+
+  @Override
+  @Transactional
+  public List<ImageRoom> uploadRoomImage(Long roomId, List<MultipartFile> files, Users user) throws IllegalArgumentException {
+
+    // Fetch the room by its ID (handle exceptions as needed)
+    Rooms rooms = roomsRepository.findById(roomId)
+            .orElseThrow(() -> new IllegalArgumentException("Invalid property ID: " + roomId));
+
+    // Initialize a list to store uploaded image room
+    List<ImageRoom> uploadedImages = new ArrayList<>();
+
+    // Iterate through the list of files
+    for (MultipartFile file : files) {
+      try {
+        // Get the original file name from the uploaded file
+        String fileName = file.getOriginalFilename();
+
+        // Upload the file to Cloudinary or any storage service you're using
+        String imageUrl = cloudinaryService.uploadFile(file, "roomio/properties/" + roomId);
+
+        // Create a new Imageroom object to save in the database
+        ImageRoom imageRoom = new ImageRoom();
+        imageRoom.setImageName(fileName);  // Set the original file name
+        imageRoom.setImageUrl(imageUrl);   // Set the URL returned by Cloudinary
+        imageRoom.setRooms(rooms); // Associate the image with the property
+        imageRoom.setUser(user);
+
+
+        // Save the image information to the database
+        imageRoom = imageRoomRepository.save(imageRoom);
+
+        // Add the uploaded image to the list
+        uploadedImages.add(imageRoom);
+      } catch (Exception e) {
+        // Handle exceptions such as file upload failures
+        e.printStackTrace(); // Log the error (or handle it as needed)
+      }
+    }
+
+    // Return the list of uploaded images
+    return uploadedImages;
   }
 
 

@@ -10,6 +10,8 @@ import org.hibernate.annotations.ColumnDefault;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
+import java.util.Optional;
 
 @Getter
 @Setter
@@ -90,5 +92,36 @@ public class Rooms {
         updatedAt = Instant.now();
     }
 
+    @OneToMany(mappedBy = "rooms", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RoomPeakRate> peakRates;
 
+    public BigDecimal getActualPrice() {
+        if (peakRates == null || peakRates.isEmpty()) {
+            return basePrice; // No peak rates, so the actual price is the base price
+        }
+
+        // Get the maximum peak rate based on the rate type
+        Optional<RoomPeakRate> maxPeakRate = peakRates.stream()
+                .max((r1, r2) -> r1.getRateValue().compareTo(r2.getRateValue()));
+
+        if (maxPeakRate.isEmpty()) {
+            return basePrice;
+        }
+
+        RoomPeakRate peakRate = maxPeakRate.get();
+        BigDecimal peakRateValue = peakRate.getRateValue();
+        String rateType = peakRate.getRateType();
+
+        if ("percentage".equalsIgnoreCase(rateType)) {
+            // Apply the peak rate as a percentage
+            BigDecimal percentage = peakRateValue.divide(BigDecimal.valueOf(100));
+            return basePrice.add(basePrice.multiply(percentage));
+        } else if ("nominal".equalsIgnoreCase(rateType)) {
+            // Apply the peak rate as a nominal value
+            return basePrice.add(peakRateValue);
+        } else {
+            // Default case if the rate type is unknown or not handled
+            return basePrice;
+        }
+    }
 }

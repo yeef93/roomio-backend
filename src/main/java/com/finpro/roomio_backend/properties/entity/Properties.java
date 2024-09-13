@@ -67,6 +67,9 @@ public class Properties {
     @OneToMany(mappedBy = "properties", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ImageProperties> images; // One-to-many relationship with images
 
+    @OneToMany(mappedBy = "properties", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Rooms> rooms;
+
     @PrePersist
     protected void onCreate() {
         createdAt = Instant.now();

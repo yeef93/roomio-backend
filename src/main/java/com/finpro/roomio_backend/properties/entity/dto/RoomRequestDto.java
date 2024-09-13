@@ -38,4 +38,6 @@ public class RoomRequestDto {
 
     @Min(value = 1, message = "Total bathroom must be at least 1")
     private Integer totalBathroom;
+
+    private Boolean isActive;
 }

@@ -1,8 +1,11 @@
 package com.finpro.roomio_backend.properties.controller;
 
 
+import com.finpro.roomio_backend.exceptions.ObjectNotFoundException;
 import com.finpro.roomio_backend.image.entity.ImageProperties;
+import com.finpro.roomio_backend.image.entity.ImageRoom;
 import com.finpro.roomio_backend.image.entity.dto.PropertiesImageResponseDto;
+import com.finpro.roomio_backend.image.entity.dto.RoomImageResponseDto;
 import com.finpro.roomio_backend.image.service.ImageService;
 import com.finpro.roomio_backend.properties.entity.Properties;
 import com.finpro.roomio_backend.properties.entity.Rooms;
@@ -13,14 +16,17 @@ import com.finpro.roomio_backend.properties.service.RoomsService;
 import com.finpro.roomio_backend.responses.Response;
 import com.finpro.roomio_backend.users.entity.Users;
 import com.finpro.roomio_backend.users.service.UsersService;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -94,7 +100,7 @@ public class PropertiesController {
             PropertiesResponseDto responseDto = new PropertiesResponseDto(createdProperty);
 
             // Return success response with the DTO
-            return Response.failedResponse(
+            return Response.successfulResponse(
                     CREATED.value(),
                     "Property successfully created!",
                     responseDto);
@@ -115,21 +121,56 @@ public class PropertiesController {
         }
     }
 
-    // Get all Property
+//    // Get all Property
+//    @GetMapping
+//    public ResponseEntity<?> getAllProperty() {
+//        try {
+//            List<Properties> properties = propertiesService.getAllProperties();
+//            // Convert List of Property to List of PropertyResponseDto
+//            List<PropertiesResponseDto> propertyDtos = properties.stream()
+//                    .map(PropertiesResponseDto::new)
+//                    .collect(Collectors.toList());
+//            // Return the response
+//            return Response.successfulResponse(OK.value(),"Property retrieved successfully", propertyDtos);
+//        } catch (Exception e) {
+//            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to get all property: " + e.getMessage());
+//        }
+//    }
+
+    // Get all Property with search, sort, pagination, and city filtering
     @GetMapping
-    public ResponseEntity<?> getAllProperty() {
+    public ResponseEntity<?> getAllProperty(
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "city", required = false) String city,
+            @RequestParam(value = "sortBy", defaultValue = "id") String sortBy,
+            @RequestParam(value = "direction", defaultValue = "ASC") String direction,
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size) {
         try {
-            List<Properties> properties = propertiesService.getAllProperties();
+            // Call the service with the search, city, sort, and pagination parameters
+            Page<Properties> propertiesPage = propertiesService.getProperties(search, city, sortBy, direction, page, size);
+
             // Convert List of Property to List of PropertyResponseDto
-            List<PropertiesResponseDto> propertyDtos = properties.stream()
+            List<PropertiesResponseDto> propertyDtos = propertiesPage.getContent().stream()
                     .map(PropertiesResponseDto::new)
                     .collect(Collectors.toList());
-            // Return the response
-            return Response.failedResponse(OK.value(),"Property retrieved successfully", propertyDtos);
+
+            // Return the response with pagination details
+            return Response.successfulResponse(
+                    HttpStatus.OK.value(),
+                    "Properties retrieved successfully",
+                    propertyDtos,
+                    propertiesPage.getTotalPages(),
+                    propertiesPage.getTotalElements()
+            );
         } catch (Exception e) {
-            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to get all property: " + e.getMessage());
+            return Response.failedResponse(
+                    HttpStatus.BAD_REQUEST.value(),
+                    "Failed to get properties: " + e.getMessage()
+            );
         }
     }
+
 
 
     // Get property by ID
@@ -211,6 +252,7 @@ public class PropertiesController {
         }
     }
 
+
     @PostMapping("/{propertyId}/rooms")
     public ResponseEntity<?> addRoom(@PathVariable Long propertyId, @RequestBody RoomRequestDto roomDTO) {
         try {
@@ -220,4 +262,102 @@ public class PropertiesController {
             return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to add room: " + e.getMessage());
         }
     }
+
+    // get all property room
+    @GetMapping("/{propertyId}/rooms")
+    public ResponseEntity<?> getRooms(@PathVariable Long propertyId) {
+        try {
+            List<RoomResponseDto> rooms = roomsService.getRoomsByPropertyId(propertyId);
+            return Response.successfulResponse(OK.value(), "Rooms successfully retrieved.", rooms);
+        } catch (Exception e) {
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to get room: " + e.getMessage());
+        }
+    }
+
+//    // get all property room
+//    @GetMapping("/{propertyId}/rooms")
+//    public ResponseEntity<?> getRoomsByProperty(@PathVariable Long propertyId) {
+//        try {
+//            List<RoomResponseDto> rooms = propertiesService.getRoomsWithPeakRates(propertyId);
+//            return ResponseEntity.ok(rooms);
+//        } catch (Exception e) {
+//            return ResponseEntity.badRequest().body("Failed to get rooms: " + e.getMessage());
+//        }
+//    }
+
+    //get property room by id
+    @GetMapping("/{propertyId}/rooms/{roomId}")
+    public ResponseEntity<?> getRoomById(@PathVariable Long propertyId, @PathVariable Long roomId) {
+        try {
+            RoomResponseDto roomResponse = roomsService.getRoomById(propertyId, roomId).getBody();  // Call the service method
+            return Response.successfulResponse(HttpStatus.OK.value(), "Room successfully retrieved.", roomResponse);
+        } catch (Exception e) {
+            return Response.failedResponse(HttpStatus.NOT_FOUND.value(), "Failed to get room: " + e.getMessage());
+        }
+    }
+
+    //update room details
+    @PutMapping("/{propertyId}/rooms/{roomId}")
+    public ResponseEntity<?> updateRoom(
+            @PathVariable Long propertyId,
+            @PathVariable Long roomId,
+            @RequestBody RoomRequestDto roomRequestDto) {
+
+        try {
+            RoomResponseDto updatedRoom = roomsService.updateRoom(propertyId, roomId, roomRequestDto);
+            return Response.successfulResponse(HttpStatus.OK.value(), "Room updated successfully.", updatedRoom);
+        } catch (Exception e) {
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to update room: " + e.getMessage());
+        }
+    }
+
+    //deactivate room property
+    @PutMapping("/{propertyId}/rooms/{roomId}/inactive")
+    public ResponseEntity<?> deactivateRoom(@PathVariable Long propertyId, @PathVariable Long roomId) {
+        try {
+            RoomResponseDto updatedRoom = roomsService.deactivateRoom(propertyId, roomId);
+            return Response.successfulResponse(HttpStatus.OK.value(), "Room successfully deactivated.", updatedRoom);
+        } catch (ObjectNotFoundException e) {
+            return Response.failedResponse(HttpStatus.NOT_FOUND.value(), e.getMessage());
+        } catch (Exception e) {
+            return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "Failed to deactivate room.");
+        }
+    }
+
+
+    //upload room image
+    @PostMapping("/{propertyId}/rooms/{roomId}/images")
+    public ResponseEntity<Response<List<RoomImageResponseDto>>> uploadRoomImages(
+            @PathVariable Long propertyId,
+            @PathVariable Long roomId,
+            @RequestParam("files") List<MultipartFile> files,
+            @AuthenticationPrincipal Users user) {
+        try {
+            Users tenant = usersService.getCurrentUser();
+            if (!tenant.getIsTenant()) {
+                throw new AccessDeniedException("You do not have permission to upload an image for property");
+            }
+            // Call the service method to upload images
+            List<ImageRoom> uploadedImages = imageService.uploadRoomImage(roomId, files, user);
+            // Return a successful response with the list of uploaded images
+            if (uploadedImages.isEmpty()) {
+                return ResponseEntity.noContent().build();
+            } else {
+                List<RoomImageResponseDto> responseDtos = uploadedImages.stream()
+                        .map(RoomImageResponseDto::new)
+                        .collect(Collectors.toList());
+
+                return ResponseEntity.ok(Response.successfulResponse(OK.value(), "Room Images successfully uploaded!", responseDtos).getBody());
+            }
+        } catch (IllegalArgumentException e) {
+            // Handle the case where the room is not found
+            return Response.failedResponse(HttpStatus.BAD_REQUEST.value(),e.getMessage());
+        } catch (Exception e) {
+            // Handle any other errors
+            return Response.failedResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(),"Image upload failed: " + e.getMessage());
+        }
+    }
+
+
+
 }
