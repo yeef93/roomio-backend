@@ -225,8 +225,8 @@ public class OrderServiceImpl implements OrderService {
 
         PageRequest pageable = PageRequest.of(page, size);
 
-        // Retrieve orders with filters
-        return orderRepository.findOrdersByStatusAndFilter(
+        // Retrieve orders for user with filters
+        return orderRepository.findUserOrders(
                 userId,
                 statusId,
                 orderId.orElse(null),

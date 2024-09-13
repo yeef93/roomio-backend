@@ -71,7 +71,7 @@ public class OrderController {
         return Response.successfulResponse(response);
     }
 
-    @GetMapping
+    @GetMapping("/users")
     public ResponseEntity<Page<Orders>> userGetOrders(
             Authentication authentication,
             @RequestParam Integer statusId,
@@ -89,5 +89,6 @@ public class OrderController {
         Page<Orders> orders = orderService.userGetOrders(authentication, statusId, optionalOrderId, optionalStartDate, optionalEndDate, page, size);
         return ResponseEntity.ok(orders);
     }
+
 
 }

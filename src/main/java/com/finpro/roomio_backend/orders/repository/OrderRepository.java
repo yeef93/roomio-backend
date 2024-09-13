@@ -12,11 +12,11 @@ import java.time.LocalDate;
 public interface OrderRepository extends JpaRepository<Orders, Long> {
     @Query("SELECT o FROM Orders o WHERE " +
             "(o.userId = :userId) AND " +
-            "(o.statusId = :statusId) AND " +
-            "(:orderId IS NULL OR o.id = :orderId) AND " +
-            "(:startDate IS NULL OR o.checkin >= :startDate) AND " +
-            "(:endDate IS NULL OR o.checkout <= :endDate)")
-    Page<Orders> findOrdersByStatusAndFilter(
+            "(COALESCE(:statusId, o.statusId) = o.statusId) AND " +
+            "(COALESCE(:orderId, o.id) = o.id) AND " +
+            "(COALESCE(:startDate, o.checkin) >= o.checkin) AND " +
+            "(COALESCE(:endDate, o.checkout) <= o.checkout)")
+    Page<Orders> findUserOrders(
             Long userId,
             @Param("statusId") Integer statusId,
             @Param("orderId") Long orderId,
