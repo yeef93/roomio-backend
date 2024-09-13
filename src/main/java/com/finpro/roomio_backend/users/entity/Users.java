@@ -78,4 +78,4 @@ public class Users {
     protected void onUpdate() {
         updatedAt = Instant.now();
     }
-}
+} 

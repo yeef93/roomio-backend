@@ -22,7 +22,7 @@ public class UserProfileDto {
     private Date birthdate;
     private String phonenumber;
 
-    public UserProfileDto(Users user) {
+    public UserProfileDto(Users user) {        
         this.id = user.getId();
         this.firstname = user.getFirstname();
         this.lastname = user.getLastname();
@@ -31,11 +31,10 @@ public class UserProfileDto {
         this.avatar = user.getAvatar() == null ? null :new AvatarImageResponseDto(user.getAvatar());
         this.birthdate = user.getBirthdate();
         this.phonenumber = user.getPhonenumber();
-
     }
 
     public UserProfileDto toDto(Users user) {
         return new UserProfileDto(user);
     }
 
-}
+} 

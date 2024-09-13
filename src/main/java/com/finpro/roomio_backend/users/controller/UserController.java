@@ -79,7 +79,7 @@ public class UserController {
         try {
             userService.update(requestDTO);
             UserProfileDto userProfile = userService.getProfile();
-            return Response.successfulResponse(HttpStatus.OK.value(), "Profile update successful!! :D", userProfile);
+            return Response.successfulResponse(HttpStatus.OK.value(), "Profile update successful!! 😄", userProfile);
         } catch (Exception e) {
             return Response.failedResponse(HttpStatus.BAD_REQUEST.value(), "Failed to update profile: " + e.getMessage());
         }
@@ -96,4 +96,4 @@ public class UserController {
         }
     }
 
-}
+} 

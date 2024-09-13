@@ -32,4 +32,4 @@ public interface ImageService {
   List<ImageRoom> uploadRoomImage(Long roomId, List<MultipartFile> files, Users user);
 
   List<PropertiesImageResponseDto> getImagesByPropertyId(Long propertyId);
-}
+} 
